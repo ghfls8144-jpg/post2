@@ -458,32 +458,32 @@ ${DOC_CONTENT}
 - 핵심 정보는 간결하게 요약하되, 중요한 기준(금액, 기간, 비율 등)은 반드시 포함하세요.`;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1024,
-        system: systemPrompt,
-        messages: messages,
-      }),
-    });
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: {
+            parts: [{ text: systemPrompt }],
+          },
+          contents: geminiMessages,
+          generationConfig: {
+            maxOutputTokens: 2048,
+            temperature: 0.3,
+          },
+        }),
+      }
+    );
 
     const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || "API error" });
-    }
+    if (!text) throw new Error("Gemini 응답 오류");
 
-    const reply = data.content?.map((b) => b.text || "").join("") || "응답을 받지 못했습니다.";
-    return res.status(200).json({ reply });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Internal server error" });
+    res.status(200).json({ message: text });
+  } catch (error) {
+    console.error("API Error:", error);
+    res.status(500).json({ error: "API 호출 중 오류가 발생했습니다." });
   }
 }
