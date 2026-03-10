@@ -458,7 +458,8 @@ ${DOC_CONTENT}
 - 핵심 정보는 간결하게 요약하되, 중요한 기준(금액, 기간, 비율 등)은 반드시 포함하세요.`;
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
